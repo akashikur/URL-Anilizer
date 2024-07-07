@@ -14,9 +14,10 @@ import { BeatLoader } from "react-spinners";
 
 import * as Yup from "yup";
 import useFetch from "@/hooks/user-fetch";
-import { signUp } from "@/db/apiAuth";
+
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { UrlState } from "@/context";
+import { signup } from "@/db/apiAuth";
 
 const SignUp = () => {
   const [formDate, setFormDate] = useState({
@@ -38,7 +39,7 @@ const SignUp = () => {
     setFormDate((prev) => ({ ...prev, [name]: files ? files[0] : value }));
   };
 
-  const { data, error, loading, fn: fnSignup } = useFetch(signUp, formDate);
+  const { data, error, loading, fn: fnSignup } = useFetch(signup, formDate);
 
   const { fetchUser } = UrlState();
 

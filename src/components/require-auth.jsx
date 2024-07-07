@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { UrlState } from "@/context";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";

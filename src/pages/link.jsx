@@ -11,11 +11,28 @@ import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { BarLoader, BeatLoader } from "react-spinners";
 
-const Link = () => {
-  const { id } = useParams();
-  const { user } = UrlState();
-  const navigate = useNavigate();
+const LinkPage = () => {
+  const downloadImage = () => {
+    const imageUrl = url?.qr;
+    const fileName = url?.title;
 
+    // Create an anchor element
+    const anchor = document.createElement("a");
+    anchor.href = imageUrl;
+    anchor.download = fileName;
+
+    // Append the anchor to the body
+    document.body.appendChild(anchor);
+
+    // Trigger the download by simulating a click event
+    anchor.click();
+
+    // Remove the anchor from the document
+    document.body.removeChild(anchor);
+  };
+  const navigate = useNavigate();
+  const { user } = UrlState();
+  const { id } = useParams();
   const {
     loading,
     data: url,
@@ -33,32 +50,25 @@ const Link = () => {
 
   useEffect(() => {
     fn();
-    fnStats();
   }, []);
+
+  useEffect(() => {
+    if (!error && loading === false) fnStats();
+  }, [loading, error]);
 
   if (error) {
     navigate("/dashboard");
   }
+
   let link = "";
   if (url) {
-    link = url?.custom_url ? url?.custom_url : url?.short_url;
-  }
-
-  function downloadImage() {
-    const imageUrl = url?.qr;
-    const fileName = url?.title;
-    const anchor = document.createElement("a");
-    anchor.href = imageUrl;
-    anchor.download = fileName;
-    document.body.appendChild(anchor);
-    anchor.click();
-    document.body.removeChild(anchor);
+    link = url?.custom_url ? url?.custom_url : url.short_url;
   }
 
   return (
     <>
       {(loading || loadingStats) && (
-        <BarLoader className="mb-4" width="100%" color="#36d7b7" />
+        <BarLoader className="mb-4" width={"100%"} color="#36d7b7" />
       )}
       <div className="flex flex-col gap-8 sm:flex-row justify-between">
         <div className="flex flex-col items-start gap-8 rounded-lg sm:w-2/5">
@@ -66,11 +76,13 @@ const Link = () => {
             {url?.title}
           </span>
           <a
-            href={`http://trimrr.in/${link}`}
+            href={import.meta.env.VITE_APP_URL + "/" + link}
             target="_blank"
             className="text-3xl sm:text-4xl text-blue-400 font-bold hover:underline cursor-pointer"
           >
-            http://trimrr.in/{link}
+            <Button>
+              <LinkIcon className="mr-3" size={20} /> <span>Your Link</span>
+            </Button>
           </a>
           <a
             href={url?.original_url}
@@ -87,8 +99,8 @@ const Link = () => {
             <Button
               variant="ghost"
               onClick={() =>
-                navigate.clipboard.writeText(
-                  `http://trimrr.in/${url?.short_url}`
+                navigator.clipboard.writeText(
+                  import.meta.env.VITE_APP_URL + "/" + link
                 )
               }
             >
@@ -97,9 +109,17 @@ const Link = () => {
             <Button variant="ghost" onClick={downloadImage}>
               <Download />
             </Button>
-            <Button variant="ghost" onClick={() => fnDelete()}>
+            <Button
+              variant="ghost"
+              onClick={() =>
+                fnDelete().then(() => {
+                  navigate("/dashboard");
+                })
+              }
+              disable={loadingDelete}
+            >
               {loadingDelete ? (
-                <BeatLoader size="5" color="white" />
+                <BeatLoader size={5} color="white" />
               ) : (
                 <Trash />
               )}
@@ -108,16 +128,15 @@ const Link = () => {
           <img
             src={url?.qr}
             className="w-full self-center sm:self-start ring ring-blue-500 p-1 object-contain"
-            alt="qr_code "
+            alt="qr code"
           />
         </div>
+
         <Card className="sm:w-3/5">
           <CardHeader>
-            <CardTitle className="text-4xl font-extrabold">
-              Card Title
-            </CardTitle>
+            <CardTitle className="text-4xl font-extrabold">Stats</CardTitle>
           </CardHeader>
-          {stats && stats?.length ? (
+          {stats && stats.length ? (
             <CardContent className="flex flex-col gap-6">
               <Card>
                 <CardHeader>
@@ -127,6 +146,7 @@ const Link = () => {
                   <p>{stats?.length}</p>
                 </CardContent>
               </Card>
+
               <CardTitle>Location Data</CardTitle>
               <Location stats={stats} />
               <CardTitle>Device Info</CardTitle>
@@ -135,8 +155,8 @@ const Link = () => {
           ) : (
             <CardContent>
               {loadingStats === false
-                ? "No Statistis yet"
-                : "Loading Statistics..."}
+                ? "No Statistics yet"
+                : "Loading Statistics.."}
             </CardContent>
           )}
         </Card>
@@ -145,4 +165,4 @@ const Link = () => {
   );
 };
 
-export default Link;
+export default LinkPage;
